@@ -3,61 +3,64 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 -- Créer un RemoteEvent pour communiquer entre le client et le serveur
 local SendMessageEvent = Instance.new("RemoteEvent")
 SendMessageEvent.Name = "SendMessageEvent"
 SendMessageEvent.Parent = ReplicatedStorage
 
--- Charger la bibliothèque Tokyo Lib
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Roblox-UI-Libs/main/1%20Tokyo%20Lib%20(FIXED)/Tokyo%20Lib%20Source.lua"))({
-    cheatname = "Title Here", -- watermark text
-    gamename = "Title Here", -- watermark text
-})
+-- Créer l'interface utilisateur
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-library:init()
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 300, 0, 200)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
-local Window1 = library.NewWindow({
-    title = "Title Here | Title Here", -- Mainwindow Text
-    size = UDim2.new(0, 510, 0.6, 6)
-})
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.Position = UDim2.new(0, 0, 0, 0)
+Title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Title.BorderSizePixel = 0
+Title.Text = "Message Broadcaster"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.Parent = MainFrame
 
-local Tab1 = Window1:AddTab("  Tab1  ")
-local SettingsTab = library:CreateSettingsTab(Window1)
+local MessageBox = Instance.new("TextBox")
+MessageBox.Size = UDim2.new(0.8, 0, 0, 50)
+MessageBox.Position = UDim2.new(0.1, 0, 0, 60)
+MessageBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+MessageBox.BorderSizePixel = 0
+MessageBox.PlaceholderText = "Enter your message here"
+MessageBox.Text = ""
+MessageBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+MessageBox.TextScaled = true
+MessageBox.Parent = MainFrame
 
-local Section1 = Tab1:AddSection("Section 1", 1)
+local SendButton = Instance.new("TextButton")
+SendButton.Size = UDim2.new(0.8, 0, 0, 50)
+SendButton.Position = UDim2.new(0.1, 0, 0, 120)
+SendButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SendButton.BorderSizePixel = 0
+SendButton.Text = "Send Message"
+SendButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SendButton.TextScaled = true
+SendButton.Parent = MainFrame
 
-local messageBox = Section1:AddBox({
-    enabled = true,
-    name = "TextBox1",
-    flag = "TextBox_1",
-    input = "Enter your message here",
-    focused = false,
-    risky = false,
-    callback = function(v)
-        print("Message entered:", v)
+-- Fonction pour envoyer le message au serveur
+SendButton.MouseButton1Click:Connect(function()
+    local message = MessageBox.Text
+    if message ~= "" then
+        SendMessageEvent:FireServer(message)
+        MessageBox.Text = "" -- Effacer le texte après l'envoi
     end
-})
-
-Section1:AddButton({
-    enabled = true,
-    text = "Send Message",
-    tooltip = "tooltip1",
-    confirm = true,
-    risky = false,
-    callback = function()
-        local message = messageBox:GetValue()
-        if message ~= "" then
-            SendMessageEvent:FireServer(message)
-            messageBox:SetValue("") -- Effacer le texte après l'envoi
-        end
-    end
-})
-
-Section1:AddSeparator({
-    enabled = true,
-    text = "Separator1"
-})
+end)
 
 -- Côté serveur pour envoyer le message à tous les joueurs
 if RunService:IsServer() then
