@@ -3,16 +3,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
 -- Créer un RemoteEvent pour communiquer entre le client et le serveur
 local SendMessageEvent = Instance.new("RemoteEvent")
 SendMessageEvent.Name = "SendMessageEvent"
 SendMessageEvent.Parent = ReplicatedStorage
-
--- Charger la bibliothèque Elerium Interface Library
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/icuck/GenesisStudioLibraries/main/Elerium%20Interface%20Library.lua"))()
 
 -- Créer l'interface utilisateur
 local ScreenGui = Instance.new("ScreenGui")
