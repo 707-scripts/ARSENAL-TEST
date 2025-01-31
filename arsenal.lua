@@ -11,6 +11,9 @@ local SendMessageEvent = Instance.new("RemoteEvent")
 SendMessageEvent.Name = "SendMessageEvent"
 SendMessageEvent.Parent = ReplicatedStorage
 
+-- Charger la bibliothèque Elerium Interface Library
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/icuck/GenesisStudioLibraries/main/Elerium%20Interface%20Library.lua"))()
+
 -- Créer l'interface utilisateur
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
