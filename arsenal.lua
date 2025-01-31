@@ -25,9 +25,12 @@ Rayfield:Notify({
 -- Variables du silent aim
 local fov = 50  -- Le FOV du silent aim (vous pouvez ajuster cette valeur)
 local silentAimEnabled = false  -- Par défaut, le silent aim est désactivé
+local espEnabled = false  -- Par défaut, l'ESP est désactivé
+local espColor = Color3.new(1, 0, 0)  -- Couleur de l'ESP par défaut
 
 -- Fonction d'activation de l'ESP
 local function toggleESP()
+    espEnabled = not espEnabled  -- Inverser l'état de l'ESP
     local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
     if not playerGui then return end
 
@@ -36,47 +39,61 @@ local function toggleESP()
     if oldESP then
         oldESP:Destroy()
     end
-    
-    -- Création du nouvel ESP
-    local screenGui = Instance.new("ScreenGui", playerGui)
-    screenGui.Name = "TadachiisESP"
 
-    local function createBillboard(player)
-        local character = player.Character
-        if not character or not character:FindFirstChild("Head") then return end
+    if espEnabled then
+        -- Création du nouvel ESP
+        local screenGui = Instance.new("ScreenGui", playerGui)
+        screenGui.Name = "TadachiisESP"
 
-        -- Vérifier si le BillboardGui existe déjà
-        local existingBillboard = character.Head:FindFirstChild("PlayerBillboardGui")
-        if existingBillboard then return end
+        local function createBillboard(player)
+            local character = player.Character
+            if not character or not character:FindFirstChild("Head") then return end
 
-        -- Création du BillboardGui pour le joueur
-        local billboard = Instance.new("BillboardGui", character.Head)
-        billboard.Name = "PlayerBillboardGui"
-        billboard.Size = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 2, 0)
-        billboard.AlwaysOnTop = true
+            -- Vérifier si le BillboardGui existe déjà
+            local existingBillboard = character.Head:FindFirstChild("PlayerBillboardGui")
+            if existingBillboard then return end
 
-        local textLabel = Instance.new("TextLabel", billboard)
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.new(1, 0, 0)
-        textLabel.TextScaled = true
-        textLabel.TextStrokeTransparency = 0
-        textLabel.Text = player.Name
-    end
+            -- Création du BillboardGui pour le joueur
+            local billboard = Instance.new("BillboardGui", character.Head)
+            billboard.Name = "PlayerBillboardGui"
+            billboard.Size = UDim2.new(0, 100, 0, 50)
+            billboard.StudsOffset = Vector3.new(0, 2, 0)
+            billboard.AlwaysOnTop = true
 
-    -- Création des Billboards pour les autres joueurs
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            createBillboard(player)
+            local textLabel = Instance.new("TextLabel", billboard)
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextColor3 = espColor
+            textLabel.TextScaled = true
+            textLabel.TextStrokeTransparency = 0
+            textLabel.Text = player.Name
         end
+
+        -- Création des Billboards pour les autres joueurs
+        for _, player in ipairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer then
+                createBillboard(player)
+            end
+        end
+
+        Rayfield:Notify({
+            Title = "ESP activé",
+            Content = "L'ESP a été activé.",
+            Duration = 5,
+        })
+    else
+        Rayfield:Notify({
+            Title = "ESP désactivé",
+            Content = "L'ESP a été désactivé.",
+            Duration = 5,
+        })
     end
 end
 
 -- Fonction de Silent Aim
 local function toggleSilentAim()
     silentAimEnabled = not silentAimEnabled  -- Inverser l'état du silent aim
-    
+
     -- Alerte sur l'état du silent aim
     if silentAimEnabled then
         Rayfield:Notify({
@@ -99,7 +116,7 @@ local function silentAimLogic()
 
     local localPlayer = game.Players.LocalPlayer
     local mouse = localPlayer:GetMouse()
-    
+
     -- Parcourir tous les joueurs pour trouver ceux dans le FOV
     local closestPlayer = nil
     local closestDistance = math.huge  -- Distance infinie au départ
@@ -130,13 +147,33 @@ end
 
 -- Ajouter les boutons de la fenêtre
 MainTab:CreateButton({
-    Name = "Activer ESP",
+    Name = "Activer/Désactiver ESP",
     Callback = toggleESP
 })
 
 MainTab:CreateButton({
-    Name = "Activer Silent Aim",
+    Name = "Activer/Désactiver Silent Aim",
     Callback = toggleSilentAim
+})
+
+MainTab:CreateSlider({
+    Name = "FOV Silent Aim",
+    Range = {1, 100},
+    Increment = 1,
+    Suffix = "FOV",
+    CurrentValue = fov,
+    Callback = function(value)
+        fov = value
+    end,
+})
+
+MainTab:CreateColorPicker({
+    Name = "Couleur ESP",
+    Default = espColor,
+    Callback = function(value)
+        espColor = value
+        toggleESP()  -- Réappliquer l'ESP avec la nouvelle couleur
+    end,
 })
 
 -- Exécuter la logique du silent aim en boucle
