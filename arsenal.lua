@@ -1,184 +1,85 @@
--- Création de la fenêtre principale
-local Window = Rayfield:CreateWindow({
-    Name = "LA TEAM 707 Script Hub",
-    LoadingTitle = "Chargement...",
-    LoadingSubtitle = "Par LA TEAM 707",
-    Discord = {
-        Enabled = true,
-        Invite = "GhQDgqx2HP",
-        RememberJoins = true
-    },
-    KeySystem = false
+-- StarterGui
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Créer un RemoteEvent pour communiquer entre le client et le serveur
+local SendMessageEvent = Instance.new("RemoteEvent")
+SendMessageEvent.Name = "SendMessageEvent"
+SendMessageEvent.Parent = ReplicatedStorage
+
+-- Charger la bibliothèque Tokyo Lib
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/drillygzzly/Roblox-UI-Libs/main/1%20Tokyo%20Lib%20(FIXED)/Tokyo%20Lib%20Source.lua"))({
+    cheatname = "Title Here", -- watermark text
+    gamename = "Title Here", -- watermark text
 })
 
--- Section principale
-local MainTab = Window:CreateTab("🏠 Accueil 🏠")
-MainTab:CreateSection("Principal")
+library:init()
 
--- Notification de chargement réussi
-Rayfield:Notify({
-    Title = "Chargement réussi",
-    Content = "Le script a été chargé avec succès.",
-    Duration = 5,
+local Window1 = library.NewWindow({
+    title = "Title Here | Title Here", -- Mainwindow Text
+    size = UDim2.new(0, 510, 0.6, 6)
 })
 
--- Variables du silent aim
-local fov = 50  -- Le FOV du silent aim (vous pouvez ajuster cette valeur)
-local silentAimEnabled = false  -- Par défaut, le silent aim est désactivé
-local espEnabled = false  -- Par défaut, l'ESP est désactivé
-local espColor = Color3.new(1, 0, 0)  -- Couleur de l'ESP par défaut
+local Tab1 = Window1:AddTab("  Tab1  ")
+local SettingsTab = library:CreateSettingsTab(Window1)
 
--- Fonction d'activation de l'ESP
-local function toggleESP()
-    espEnabled = not espEnabled  -- Inverser l'état de l'ESP
-    local playerGui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
-    if not playerGui then return end
+local Section1 = Tab1:AddSection("Section 1", 1)
 
-    -- Vérifier et nettoyer l'ancien ESP
-    local oldESP = playerGui:FindFirstChild("TadachiisESP")
-    if oldESP then
-        oldESP:Destroy()
+local messageBox = Section1:AddBox({
+    enabled = true,
+    name = "TextBox1",
+    flag = "TextBox_1",
+    input = "Enter your message here",
+    focused = false,
+    risky = false,
+    callback = function(v)
+        print("Message entered:", v)
     end
+})
 
-    if espEnabled then
-        -- Création du nouvel ESP
-        local screenGui = Instance.new("ScreenGui", playerGui)
-        screenGui.Name = "TadachiisESP"
-
-        local function createBillboard(player)
-            local character = player.Character
-            if not character or not character:FindFirstChild("Head") then return end
-
-            -- Vérifier si le BillboardGui existe déjà
-            local existingBillboard = character.Head:FindFirstChild("PlayerBillboardGui")
-            if existingBillboard then return end
-
-            -- Création du BillboardGui pour le joueur
-            local billboard = Instance.new("BillboardGui", character.Head)
-            billboard.Name = "PlayerBillboardGui"
-            billboard.Size = UDim2.new(0, 100, 0, 50)
-            billboard.StudsOffset = Vector3.new(0, 2, 0)
-            billboard.AlwaysOnTop = true
-
-            local textLabel = Instance.new("TextLabel", billboard)
-            textLabel.Size = UDim2.new(1, 0, 1, 0)
-            textLabel.BackgroundTransparency = 1
-            textLabel.TextColor3 = espColor
-            textLabel.TextScaled = true
-            textLabel.TextStrokeTransparency = 0
-            textLabel.Text = player.Name
-        end
-
-        -- Création des Billboards pour les autres joueurs
-        for _, player in ipairs(game.Players:GetPlayers()) do
-            if player ~= game.Players.LocalPlayer then
-                createBillboard(player)
-            end
-        end
-
-        Rayfield:Notify({
-            Title = "ESP activé",
-            Content = "L'ESP a été activé.",
-            Duration = 5,
-        })
-    else
-        Rayfield:Notify({
-            Title = "ESP désactivé",
-            Content = "L'ESP a été désactivé.",
-            Duration = 5,
-        })
-    end
-end
-
--- Fonction de Silent Aim
-local function toggleSilentAim()
-    silentAimEnabled = not silentAimEnabled  -- Inverser l'état du silent aim
-
-    -- Alerte sur l'état du silent aim
-    if silentAimEnabled then
-        Rayfield:Notify({
-            Title = "Silent Aim activé",
-            Content = "Le silent aim a été activé.",
-            Duration = 5,
-        })
-    else
-        Rayfield:Notify({
-            Title = "Silent Aim désactivé",
-            Content = "Le silent aim a été désactivé.",
-            Duration = 5,
-        })
-    end
-end
-
--- Fonction pour vérifier si un joueur est dans la zone du FOV et ajuster la visée
-local function silentAimLogic()
-    if not silentAimEnabled then return end
-
-    local localPlayer = game.Players.LocalPlayer
-    local mouse = localPlayer:GetMouse()
-
-    -- Parcourir tous les joueurs pour trouver ceux dans le FOV
-    local closestPlayer = nil
-    local closestDistance = math.huge  -- Distance infinie au départ
-
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local head = player.Character.Head
-            local screenPos, onScreen = workspace.CurrentCamera:WorldToScreenPoint(head.Position)
-
-            -- Vérifier si le joueur est visible à l'écran et dans le FOV
-            if onScreen then
-                local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                if distance < fov and distance < closestDistance then
-                    closestDistance = distance
-                    closestPlayer = player
-                end
-            end
+Section1:AddButton({
+    enabled = true,
+    text = "Send Message",
+    tooltip = "tooltip1",
+    confirm = true,
+    risky = false,
+    callback = function()
+        local message = messageBox:GetValue()
+        if message ~= "" then
+            SendMessageEvent:FireServer(message)
+            messageBox:SetValue("") -- Effacer le texte après l'envoi
         end
     end
+})
 
-    -- Si un joueur est dans la zone du FOV, viser automatiquement
-    if closestPlayer then
-        local headPos = closestPlayer.Character.Head.Position
-        local direction = (headPos - workspace.CurrentCamera.CFrame.Position).unit
-        workspace.CurrentCamera.CFrame = CFrame.lookAt(workspace.CurrentCamera.CFrame.Position, headPos)
-    end
+Section1:AddSeparator({
+    enabled = true,
+    text = "Separator1"
+})
+
+-- Côté serveur pour envoyer le message à tous les joueurs
+if RunService:IsServer() then
+    SendMessageEvent.OnServerEvent:Connect(function(player, message)
+        for _, p in ipairs(Players:GetPlayers()) do
+            SendMessageEvent:FireClient(p, message)
+        end
+    end)
 end
 
--- Ajouter les boutons de la fenêtre
-MainTab:CreateButton({
-    Name = "Activer/Désactiver ESP",
-    Callback = toggleESP
-})
+-- Côté client pour afficher le message reçu
+SendMessageEvent.OnClientEvent:Connect(function(message)
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Size = UDim2.new(0, 200, 0, 50)
+    messageLabel.Position = UDim2.new(0.5, -100, 0.5, 0)
+    messageLabel.Text = message
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.TextColor3 = Color3.new(1, 1, 1)
+    messageLabel.TextScaled = true
+    messageLabel.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
-MainTab:CreateButton({
-    Name = "Activer/Désactiver Silent Aim",
-    Callback = toggleSilentAim
-})
-
-MainTab:CreateSlider({
-    Name = "FOV Silent Aim",
-    Range = {1, 100},
-    Increment = 1,
-    Suffix = "FOV",
-    CurrentValue = fov,
-    Callback = function(value)
-        fov = value
-    end,
-})
-
-MainTab:CreateColorPicker({
-    Name = "Couleur ESP",
-    Default = espColor,
-    Callback = function(value)
-        espColor = value
-        toggleESP()  -- Réappliquer l'ESP avec la nouvelle couleur
-    end,
-})
-
--- Exécuter la logique du silent aim en boucle
-game:GetService("RunService").RenderStepped:Connect(function()
-    silentAimLogic()
+    -- Supprimer le message après 5 secondes
+    wait(5)
+    messageLabel:Destroy()
 end)
-
-print("ESP et Silent Aim activés")
